@@ -48,6 +48,7 @@ public class ValidationAgent {
             return "{\"error\": \"Validation processing failed\", \"message\": \"" + e.getMessage() + "\"}";
         }
     }
+
     /**
      * Extracts text from a Content object using multiple fallback methods
      */

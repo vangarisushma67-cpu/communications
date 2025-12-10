@@ -1,5 +1,8 @@
 package com.lloyds.hackthon.customercoms.rules.tool;
 
+import com.lloyds.hackthon.customercoms.rules.util.CommonUtils;
+
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -13,27 +16,13 @@ public class RulesTool {
         this.openAiApiKey = config.getProperty("openai.api.key", "");
     }
 
-    public String applyRules(String input, String prompt) {
+    public Map<String, Object> applyRules() {
         logger.info("Applying business rules with OpenAI LLM");
-        
-        // TODO: Implement actual OpenAI API call using Google Cloud AI Platform
-        // For now, return a placeholder response
-        
-        if (openAiApiKey.isEmpty()) {
-            logger.warning("OpenAI API key not configured");
-            return "{\"status\": \"warning\", \"message\": \"OpenAI API key not configured\", \"rules_applied\": \"none\"}";
-        }
+        String rulesDefinition = CommonUtils.readCloudStorageFile("pension-data-raw","Execution-Workbook.xlsx");
+        String validData = CommonUtils.readCloudStorageFile("pension-data-raw","Pension_Data.csv");
 
-        // Placeholder rules logic
-        boolean rulesApplied = input != null && !input.trim().isEmpty();
-        
-        return String.format(
-            "{\"status\": \"%s\", \"message\": \"Rules processing %s\", \"input_length\": %d, \"rules_applied\": %d, \"prompt_used\": \"%s\"}",
-            rulesApplied ? "success" : "error",
-            rulesApplied ? "completed" : "failed",
-            input != null ? input.length() : 0,
-            rulesApplied ? 3 : 0,
-            prompt.substring(0, Math.min(50, prompt.length())) + "..."
-        );
+        String csvRules = "";
+
+        return Map.of("executed-rules", csvRules);
     }
 }
