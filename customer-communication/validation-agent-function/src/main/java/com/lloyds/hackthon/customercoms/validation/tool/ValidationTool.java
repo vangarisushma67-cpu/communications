@@ -14,16 +14,6 @@ public class ValidationTool {
     }
 
     public String validate(String input, String prompt) {
-        logger.info("Validating input with OpenAI LLM");
-        
-        // TODO: Implement actual OpenAI API call using Google Cloud AI Platform
-        // For now, return a placeholder response
-        
-        if (openAiApiKey.isEmpty()) {
-            logger.warning("OpenAI API key not configured");
-            return "{\"status\": \"warning\", \"message\": \"OpenAI API key not configured\", \"validation\": \"skipped\"}";
-        }
-
         // Placeholder validation logic
         boolean isValid = input != null && !input.trim().isEmpty();
         
