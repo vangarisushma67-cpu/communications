@@ -19,24 +19,22 @@ import java.util.stream.Collectors;
 
 public class RulesAgent {
     private static final Logger logger = Logger.getLogger(RulesAgent.class.getName());
-    private final RulesTool rulesTool;
     private final Properties config;
 
     public RulesAgent() {
         this.config = loadConfiguration();
-        this.rulesTool = new RulesTool(config);
     }
 
     public String processRules(String input) {
         logger.info("Processing rules for input: " + input);
         
         try {
-            String validData = CommonUtils.readCloudStorageFile("pension-data-rules","pension-data-valid.csv");
+            String validData = CommonUtils.readCloudStorageFile("pension-data-communication","pension-data-valid.csv");
             // Load rules prompt
             String prompt = loadPrompt();
             LlmAgent agent = LlmAgent.builder()
-                    .name("Validation Agent")
-                    .description("You are a validation agent. Please validate the following input and provide feedback.")
+                    .name("Rules Agent")
+                    .description("You are a rules agent. Please execute the rules using RulesTool.")
                     // Set the model. gemini-2.5-flash is ideal for fast, structured output.
                     .model("gemini-2.5-pro")
                     .instruction(prompt + "\n" + validData)
@@ -44,7 +42,7 @@ public class RulesAgent {
                     .build();
             // Use rules tool to process the request
             String response = sendAndGetResponse(agent);
-            CommonUtils.writeCloudStorageFile("pension-data-summary", "pension-data-summary.csv", response);
+//            CommonUtils.writeCloudStorageFile("pension-data-summary", "pension-data-summary.csv", response);
             return response;
         } catch (Exception e) {
             logger.severe("Error in rules processing: " + e.getMessage());

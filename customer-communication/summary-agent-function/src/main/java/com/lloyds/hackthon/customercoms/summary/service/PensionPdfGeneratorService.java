@@ -26,7 +26,7 @@ public class PensionPdfGeneratorService {
      */
     public byte[] generatePensionStatementPdf(PensionData pensionData) {
         try {
-            logger.info("Generating pension statement PDF for customer: " + pensionData.getCustomerName());
+            logger.info("Generating pension statement PDF for customer: " + pensionData.getFullName());
             
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PdfWriter writer = new PdfWriter(baos);
@@ -42,9 +42,6 @@ public class PensionPdfGeneratorService {
             // Add account summary based on product type
             addAccountSummary(document, pensionData);
             
-            // Add investment details
-            addInvestmentDetails(document, pensionData);
-            
             // Add projections
             addProjections(document, pensionData);
             
@@ -53,11 +50,11 @@ public class PensionPdfGeneratorService {
             
             document.close();
             
-            logger.info("PDF generated successfully for customer: " + pensionData.getCustomerName());
+            logger.info("PDF generated successfully for customer: " + pensionData.getFullName());
             return baos.toByteArray();
             
         } catch (Exception e) {
-            logger.severe("Error generating PDF for customer " + pensionData.getCustomerName() + ": " + e.getMessage());
+            logger.severe("Error generating PDF for customer " + pensionData.getFullName() + ": " + e.getMessage());
             throw new RuntimeException("Failed to generate pension statement PDF", e);
         }
     }
@@ -99,23 +96,14 @@ public class PensionPdfGeneratorService {
                 .setWidth(UnitValue.createPercentValue(100));
         
         customerTable.addCell(createCell("Customer Name:", true));
-        customerTable.addCell(createCell(pensionData.getCustomerName(), false));
-        
-        customerTable.addCell(createCell("Customer ID:", true));
-        customerTable.addCell(createCell(pensionData.getCustomerId(), false));
-        
-        customerTable.addCell(createCell("Account Number:", true));
-        customerTable.addCell(createCell(pensionData.getAccountNumber(), false));
-        
-        customerTable.addCell(createCell("Product Type:", true));
-        customerTable.addCell(createCell(pensionData.getProductType(), false));
-        
+        customerTable.addCell(createCell(pensionData.getFullName(), false));
+
         document.add(customerTable);
         document.add(new Paragraph("\n"));
     }
     
     private void addAccountSummary(Document document, PensionData pensionData) {
-        Paragraph sectionTitle = new Paragraph("Account Summary")
+        Paragraph sectionTitle = new Paragraph("Policy Summary")
                 .setFontSize(14)
                 .setBold()
                 .setMarginBottom(10);
@@ -124,43 +112,26 @@ public class PensionPdfGeneratorService {
         Table summaryTable = new Table(UnitValue.createPercentArray(new float[]{50, 50}))
                 .setWidth(UnitValue.createPercentValue(100));
         
-        summaryTable.addCell(createHighlightCell("Current Account Value"));
-        summaryTable.addCell(createHighlightCell(formatCurrency(pensionData.getCurrentValue())));
+        summaryTable.addCell(createCell("Policy Number:", true));
+        summaryTable.addCell(createCell(pensionData.getPolicyNumber(), false));
+
+        summaryTable.addCell(createCell("Product Type:", true));
+        summaryTable.addCell(createCell(pensionData.getProductType(), false));
+
+        summaryTable.addCell(createCell("Total Units:", true));
+        summaryTable.addCell(createCell(pensionData.getTotalUnits(), false));
+
+        summaryTable.addCell(createCell("Unit Price:", true));
+        summaryTable.addCell(createCell(pensionData.getUnitPrice(), false));
         
-        summaryTable.addCell(createCell("Annual Contribution:", true));
-        summaryTable.addCell(createCell(formatCurrency(pensionData.getAnnualContribution()), false));
-        
-        summaryTable.addCell(createCell("Employer Contribution:", true));
-        summaryTable.addCell(createCell(formatCurrency(pensionData.getEmployerContribution()), false));
-        
-        summaryTable.addCell(createCell("Investment Return (YTD):", true));
-        summaryTable.addCell(createCell(pensionData.getInvestmentReturn() + "%", false));
+        summaryTable.addCell(createCell("Policy Value 2025:", true));
+        summaryTable.addCell(createCell(pensionData.getPolicyValue2025(), false));
+
+        summaryTable.addCell(createCell("Policy Value 2024:", true));
+        summaryTable.addCell(createCell(pensionData.getPolicyValue2024(), false));
         
         document.add(summaryTable);
         document.add(new Paragraph("\n"));
-    }
-    
-    private void addInvestmentDetails(Document document, PensionData pensionData) {
-        Paragraph sectionTitle = new Paragraph("Investment Details")
-                .setFontSize(14)
-                .setBold()
-                .setMarginBottom(10);
-        document.add(sectionTitle);
-        
-        Table investmentTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
-                .setWidth(UnitValue.createPercentValue(100));
-        
-        investmentTable.addCell(createCell("Risk Profile:", true));
-        investmentTable.addCell(createCell(pensionData.getRiskProfile(), false));
-        
-        investmentTable.addCell(createCell("Fund Allocation:", true));
-        investmentTable.addCell(createCell(pensionData.getFundAllocation(), false));
-        
-        document.add(investmentTable);
-        document.add(new Paragraph("\n"));
-        
-        // Add product-specific information
-        addProductSpecificInformation(document, pensionData);
     }
     
     private void addProjections(Document document, PensionData pensionData) {
@@ -173,11 +144,14 @@ public class PensionPdfGeneratorService {
         Table projectionTable = new Table(UnitValue.createPercentArray(new float[]{50, 50}))
                 .setWidth(UnitValue.createPercentValue(100));
         
-        projectionTable.addCell(createCell("Target Retirement Age:", true));
-        projectionTable.addCell(createCell(pensionData.getRetirementAge() + " years", false));
+        projectionTable.addCell(createCell("Retirement Date:", true));
+        projectionTable.addCell(createCell(pensionData.getNormalRetirementDate(), false));
         
         projectionTable.addCell(createHighlightCell("Projected Retirement Value"));
-        projectionTable.addCell(createHighlightCell(formatCurrency(pensionData.getProjectedRetirementValue())));
+        projectionTable.addCell(createHighlightCell(formatCurrency(pensionData.getFutureValueAtNRD())));
+
+        projectionTable.addCell(createHighlightCell("RAG Trigger"));
+        projectionTable.addCell(createHighlightCell(formatCurrency(pensionData.getRagTrigger())));
         
         document.add(projectionTable);
         document.add(new Paragraph("\n"));

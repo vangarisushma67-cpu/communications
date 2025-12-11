@@ -13,6 +13,16 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  * Common utilities for interacting with Google Cloud services.
@@ -121,6 +131,63 @@ public class CommonUtils extends BaseTool {
      * @return The content as a String
      * @throws Exception if there's an error fetching the content
      */
+    /**
+     * Reads an Excel file from Cloud Storage and returns a map of sheet names to their content.
+     * Each sheet's content is represented as a list of rows, where each row is a list of strings.
+     */
+    public static Map<String, List<List<String>>> readExcelFromCloudStorage(String bucketName, String objectName) throws IOException {
+        Storage storage = StorageOptions.newBuilder()
+                .setProjectId(GCP_PROJECT_ID)
+                .setCredentials(GoogleCredentials.getApplicationDefault())
+                .build()
+                .getService();
+
+        BlobId blobId = BlobId.of(bucketName, objectName);
+        byte[] content = storage.readAllBytes(blobId);
+
+        Map<String, List<List<String>>> sheetsData = new HashMap<>();
+        
+        try (InputStream is = new ByteArrayInputStream(content);
+             Workbook workbook = new XSSFWorkbook(is)) {
+            
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                String sheetName = workbook.getSheetName(i);
+                List<List<String>> sheetData = new ArrayList<>();
+                
+                for (Row row : sheet) {
+                    List<String> rowData = new ArrayList<>();
+                    for (Cell cell : row) {
+                        switch (cell.getCellType()) {
+                            case STRING:
+                                rowData.add(cell.getStringCellValue());
+                                break;
+                            case NUMERIC:
+                                if (DateUtil.isCellDateFormatted(cell)) {
+                                    rowData.add(cell.getDateCellValue().toString());
+                                } else {
+                                    rowData.add(String.valueOf(cell.getNumericCellValue()));
+                                }
+                                break;
+                            case BOOLEAN:
+                                rowData.add(String.valueOf(cell.getBooleanCellValue()));
+                                break;
+                            case FORMULA:
+                                rowData.add(cell.getCellFormula());
+                                break;
+                            default:
+                                rowData.add("");
+                        }
+                    }
+                    sheetData.add(rowData);
+                }
+                sheetsData.put(sheetName, sheetData);
+            }
+        }
+        
+        return sheetsData;
+    }
+
     public static String fetchFromUrl(String urlString) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()

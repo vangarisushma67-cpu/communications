@@ -5,25 +5,12 @@ import java.util.logging.Logger;
 
 public class SummaryTool {
     private static final Logger logger = Logger.getLogger(SummaryTool.class.getName());
-    private final Properties config;
-    private final String openAiApiKey;
-
-    public SummaryTool(Properties config) {
-        this.config = config;
-        this.openAiApiKey = config.getProperty("openai.api.key", "");
+    public SummaryTool() {
     }
 
     public String createSummary(String input, String prompt) {
         logger.info("Creating summary with OpenAI LLM");
         
-        // TODO: Implement actual OpenAI API call using Google Cloud AI Platform
-        // For now, return a placeholder response
-        
-        if (openAiApiKey.isEmpty()) {
-            logger.warning("OpenAI API key not configured");
-            return "{\"status\": \"warning\", \"message\": \"OpenAI API key not configured\", \"summary\": \"Summary generation skipped\"}";
-        }
-
         // Placeholder summary logic
         if (input == null || input.trim().isEmpty()) {
             return "{\"status\": \"error\", \"message\": \"No input provided for summary\", \"summary\": \"\"}";

@@ -64,17 +64,17 @@ public class SummaryAgent {
                     byte[] pdfContent = pdfGeneratorService.generatePensionStatementPdf(pensionData);
                     
                     // Create filename: ${customer_name}_summary.pdf
-                    String fileName = sanitizeFileName(pensionData.getCustomerName()) + "_summary.pdf";
+                    String fileName = sanitizeFileName(pensionData.getFullName()) + "_summary.pdf";
                     
                     // Upload to destination bucket
                     gcsService.uploadPdf(destinationBucket, fileName, pdfContent);
                     
                     successCount++;
-                    logger.info("Successfully generated PDF for customer: " + pensionData.getCustomerName());
+                    logger.info("Successfully generated PDF for customer: " + pensionData.getFullName());
                     
                 } catch (Exception e) {
                     errorCount++;
-                    logger.severe("Error generating PDF for customer " + pensionData.getCustomerName() + ": " + e.getMessage());
+                    logger.severe("Error generating PDF for customer " + pensionData.getFullName() + ": " + e.getMessage());
                 }
             }
             
@@ -101,12 +101,12 @@ public class SummaryAgent {
             byte[] pdfContent = pdfGeneratorService.generatePensionStatementPdf(pensionData);
             
             // Create filename
-            String fileName = sanitizeFileName(pensionData.getCustomerName()) + "_summary.pdf";
+            String fileName = sanitizeFileName(pensionData.getFullName()) +"_"+pensionData.getFullName()+ "_summary.pdf";
             
             // Upload to destination bucket
             gcsService.uploadPdf(DESTINATION_BUCKET, fileName, pdfContent);
             
-            return createSingleCustomerSuccessResponse(pensionData.getCustomerName(), fileName);
+            return createSingleCustomerSuccessResponse(pensionData.getFullName(), fileName);
             
         } catch (Exception e) {
             logger.severe("Error generating summary for customer: " + e.getMessage());
