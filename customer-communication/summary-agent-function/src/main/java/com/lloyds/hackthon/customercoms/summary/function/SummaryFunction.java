@@ -33,20 +33,31 @@ public class SummaryFunction implements HttpFunction {
             String requestBody = request.getReader().lines()
                     .reduce("", (accumulator, actual) -> accumulator + actual);
             
-            logger.info("Received summary request: " + requestBody);
+            logger.info("Received pension summary request");
             
-            String result = summaryAgent.generateSummary(requestBody);
+            String result;
+            
+            // Check if this is a request for a specific customer or batch processing
+            if (requestBody != null && requestBody.contains("\"customerData\"")) {
+                // Single customer processing
+                result = summaryAgent.generateSummaryForCustomer(requestBody);
+            } else {
+                // Batch processing from CSV
+                result = summaryAgent.generateSummary(requestBody);
+            }
             
             try (BufferedWriter writer = response.getWriter()) {
                 writer.write(result);
             }
             
             response.setStatusCode(200);
+            logger.info("Pension summary request processed successfully");
+            
         } catch (Exception e) {
-            logger.severe("Error processing summary request: " + e.getMessage());
+            logger.severe("Error processing pension summary request: " + e.getMessage());
             response.setStatusCode(500);
             try (BufferedWriter writer = response.getWriter()) {
-                writer.write("{\"error\": \"Internal server error\"}");
+                writer.write("{\"status\": \"error\", \"message\": \"Internal server error: " + e.getMessage() + "\"}");
             }
         }
     }
