@@ -45,6 +45,12 @@ public class CommonUtils extends BaseTool {
         }
     }
 
+    /**
+     * Reads a file from Cloud Storage as a string.
+     * @param bucketName The name of the bucket.
+     * @param objectName The name of the object/file to read.
+     * @return The file content as a string.
+     */
     public static String readCloudStorageFile(String bucketName, String objectName) {
         try {
             Storage storage = StorageOptions.newBuilder()
@@ -57,6 +63,33 @@ public class CommonUtils extends BaseTool {
         } catch (IOException e) {
             return "";
         }
+    }
+    
+    /**
+     * Reads a PDF file from Cloud Storage as raw bytes.
+     * @param bucketName The name of the bucket.
+     * @param objectName The name of the PDF file to read.
+     * @return The PDF file content as a byte array.
+     * @throws IOException if there's an error reading the file.
+     */
+    public static byte[] readCloudStoragePDFFile(String bucketName, String objectName) throws IOException {
+        return readCloudStorageFileAsBytes(bucketName, objectName);
+    }
+    
+    /**
+     * Reads a file from Cloud Storage as raw bytes.
+     * @param bucketName The name of the bucket.
+     * @param objectName The name of the object/file to read.
+     * @return The file content as a byte array.
+     * @throws IOException if there's an error reading the file.
+     */
+    public static byte[] readCloudStorageFileAsBytes(String bucketName, String objectName) throws IOException {
+        Storage storage = StorageOptions.newBuilder()
+                .setProjectId(GCP_PROJECT_ID)
+                .setCredentials(GoogleCredentials.getApplicationDefault())
+                .build().getService();
+        BlobId blobId = BlobId.of(bucketName, objectName);
+        return storage.readAllBytes(blobId);
     }
 
     /**
