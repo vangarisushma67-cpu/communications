@@ -83,9 +83,14 @@ public class CommunicationAgent {
             // Update the session with the new state
             session.state().putAll(state);
             
-            // Create the user message with both instruction and customer data
+            // Replace template variables in the instruction with actual customer data
+            String processedInstruction = agent.instruction().toString()
+                    .replace("${customerData}", statementData)
+                    .replace("{customerData}", statementData);
+            
+            // Create the user message with processed instruction
             Content userMsg = Content.fromParts(
-                    Part.fromText(agent.instruction().toString() + "\n\nCUSTOMER DATA:\n" + statementData)
+                    Part.fromText(processedInstruction)
             );
             
             // Set the customer data in the session state
